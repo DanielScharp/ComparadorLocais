@@ -10,7 +10,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Wedding Venue Comparator',
   description: 'Compare locais de casamento e encontre o melhor custo-beneficio para o seu grande dia.',
-  generator: 'DanielScharp',
+  generator: 'v0.app',
   icons: {
     icon: [
       {

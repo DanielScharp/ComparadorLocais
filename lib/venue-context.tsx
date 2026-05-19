@@ -11,7 +11,15 @@ import useSWR, { mutate as globalMutate } from "swr";
 import type { Venue, Benefit, SortMode, Attachment } from "@/lib/types";
 import { toast } from "sonner";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+  const data = await res.json();
+  // Ensure we always return an array for venues and benefits
+  return Array.isArray(data) ? data : [];
+};
 
 interface VenueContextType {
   venues: Venue[];
@@ -148,96 +156,118 @@ export function VenueProvider({ children }: { children: ReactNode }) {
   // ── Benefits CRUD ──
 
   const addBenefit = useCallback(async (benefit: Omit<Benefit, "id">) => {
-    const res = await fetch("/api/benefits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(benefit),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      toast.error(err.error || "Erro ao adicionar beneficio");
-      return;
-    }
-    toast.success("Beneficio adicionado com sucesso");
-    globalMutate("/api/benefits");
-  }, []);
-
-  const updateBenefit = useCallback(
-    async (id: string, benefit: Omit<Benefit, "id">) => {
-      const res = await fetch(`/api/benefits/${id}`, {
-        method: "PUT",
+    try {
+      const res = await fetch("/api/benefits", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(benefit),
       });
       if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || "Erro ao atualizar beneficio");
+        const text = await res.text();
+        const err = text ? JSON.parse(text) : { error: "Erro ao adicionar beneficio" };
+        toast.error(err.error || "Erro ao adicionar beneficio");
         return;
       }
-      toast.success("Beneficio atualizado com sucesso");
+      toast.success("Beneficio adicionado com sucesso");
       globalMutate("/api/benefits");
+    } catch (error) {
+      toast.error("Erro ao adicionar beneficio");
+    }
+  }, []);
+
+  const updateBenefit = useCallback(
+    async (id: string, benefit: Omit<Benefit, "id">) => {
+      try {
+        const res = await fetch(`/api/benefits/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(benefit),
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          const err = text ? JSON.parse(text) : { error: "Erro ao atualizar beneficio" };
+          toast.error(err.error || "Erro ao atualizar beneficio");
+          return;
+        }
+        toast.success("Beneficio atualizado com sucesso");
+        globalMutate("/api/benefits");
+      } catch (error) {
+        toast.error("Erro ao atualizar beneficio");
+      }
     },
     []
   );
 
   const deleteBenefit = useCallback(
     async (id: string) => {
-      const res = await fetch(`/api/benefits/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || "Erro ao excluir beneficio");
-        return;
+      try {
+        const res = await fetch(`/api/benefits/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const text = await res.text();
+          const err = text ? JSON.parse(text) : { error: "Erro ao excluir beneficio" };
+          toast.error(err.error || "Erro ao excluir beneficio");
+          return;
+        }
+        toast.success("Beneficio excluido com sucesso");
+        // Remove from active filters
+        setBenefitFilters((prev) => prev.filter((bid) => bid !== id));
+        globalMutate("/api/benefits");
+        globalMutate("/api/venues");
+      } catch (error) {
+        toast.error("Erro ao excluir beneficio");
       }
-      toast.success("Beneficio excluido com sucesso");
-      // Remove from active filters
-      setBenefitFilters((prev) => prev.filter((bid) => bid !== id));
-      globalMutate("/api/benefits");
-      globalMutate("/api/venues");
     },
     []
   );
 
   const uploadAttachment = useCallback(async (venueId: string, file: File): Promise<Attachment | null> => {
-    // First upload to blob storage
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("venueId", venueId);
+    try {
+      // First upload to blob storage
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("venueId", venueId);
 
-    const uploadRes = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (!uploadRes.ok) {
-      const err = await uploadRes.json();
-      toast.error(err.error || "Erro no upload do arquivo");
-      return null;
-    }
+      if (!uploadRes.ok) {
+        const text = await uploadRes.text();
+        const err = text ? JSON.parse(text) : { error: "Erro no upload do arquivo" };
+        toast.error(err.error || "Erro no upload do arquivo");
+        return null;
+      }
 
-    const uploadData = await uploadRes.json();
+      const uploadData = await uploadRes.json();
 
     // Then save attachment reference to database
     const attachRes = await fetch(`/api/venues/${venueId}/attachments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        file_name: uploadData.fileName,
-        file_url: uploadData.url,
-        file_type: uploadData.fileType,
-        file_size: uploadData.fileSize,
+        name: uploadData.fileName,
+        url: uploadData.url,
+        type: uploadData.fileType,
+        size: uploadData.fileSize,
       }),
     });
 
-    if (!attachRes.ok) {
-      const err = await attachRes.json();
-      toast.error(err.error || "Erro ao salvar anexo");
+      if (!attachRes.ok) {
+        const text = await attachRes.text();
+        const err = text ? JSON.parse(text) : { error: "Erro ao salvar anexo" };
+        toast.error(err.error || "Erro ao salvar anexo");
+        return null;
+      }
+
+      const attachment = await attachRes.json();
+      toast.success("Arquivo anexado com sucesso");
+      globalMutate("/api/venues");
+      return attachment;
+    } catch (error) {
+      toast.error("Erro ao processar arquivo");
       return null;
     }
-
-    const attachment = await attachRes.json();
-    toast.success("Arquivo anexado com sucesso");
-    globalMutate("/api/venues");
-    return attachment;
   }, []);
 
   const deleteAttachment = useCallback(async (venueId: string, attachmentId: string) => {

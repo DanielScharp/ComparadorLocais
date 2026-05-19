@@ -30,11 +30,11 @@ export async function POST(
   const supabase = await createClient();
   const body = await request.json();
 
-  const { file_name, file_url, file_type, file_size } = body;
+  const { name, url, type, size } = body;
 
-  if (!file_name || !file_url || !file_type) {
+  if (!name || !url || !type) {
     return NextResponse.json(
-      { error: "file_name, file_url e file_type são obrigatórios" },
+      { error: "name, url e type são obrigatórios" },
       { status: 400 }
     );
   }
@@ -43,10 +43,10 @@ export async function POST(
     .from("venue_attachments")
     .insert({
       venue_id: id,
-      file_name,
-      file_url,
-      file_type,
-      file_size: file_size || 0,
+      name,
+      url,
+      type,
+      size: size || 0,
     })
     .select()
     .single();
@@ -77,7 +77,7 @@ export async function DELETE(
   // Get attachment to delete from blob storage
   const { data: attachment, error: fetchError } = await supabase
     .from("venue_attachments")
-    .select("file_url")
+    .select("url")
     .eq("id", attachmentId)
     .eq("venue_id", id)
     .single();
@@ -87,9 +87,9 @@ export async function DELETE(
   }
 
   // Delete from blob storage
-  if (attachment?.file_url) {
+  if (attachment?.url) {
     try {
-      await del(attachment.file_url);
+      await del(attachment.url);
     } catch (e) {
       console.error("Failed to delete from blob storage:", e);
     }

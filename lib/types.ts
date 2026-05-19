@@ -45,10 +45,10 @@ export const AVAILABLE_ICONS = [
 export interface Attachment {
   id: string;
   venue_id: string;
-  file_name: string;
-  file_url: string;
-  file_type: string;
-  file_size: number;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
   created_at: string;
 }
 
@@ -63,3 +63,27 @@ export interface Venue {
 }
 
 export type SortMode = "none" | "best-cost-benefit" | "price-asc" | "price-desc";
+
+export type GuestSide = "noivo" | "noiva";
+
+export interface Guest {
+  id: string;
+  family_id: string;
+  name: string;
+  is_main_guest: boolean;
+  confirmed: boolean | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Family {
+  id: string;
+  name: string;
+  side: GuestSide;
+  max_guests: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  guests: Guest[];
+}

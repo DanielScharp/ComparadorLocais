@@ -1,5 +1,6 @@
 "use client";
 
+import useSWR from "swr";
 import { useVenues } from "@/lib/venue-context";
 import {
   DollarSign,
@@ -7,16 +8,31 @@ import {
   TrendingUp,
   Award,
 } from "lucide-react";
+import type { Family } from "@/lib/types";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch");
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
 
 export function DashboardSummary() {
   const { filteredVenues, bestVenueId, benefits } = useVenues();
+  const { data: families = [] } = useSWR<Family[]>("/api/families", fetcher);
 
   const totalVenues = filteredVenues.length;
   const avgPrice =
     totalVenues > 0
       ? filteredVenues.reduce((sum, v) => sum + v.price, 0) / totalVenues
       : 0;
-  const totalCapacity = filteredVenues.reduce((sum, v) => sum + v.capacity, 0);
+  
+  // Count total guests from all families
+  const totalGuests = families.reduce(
+    (sum, family) => sum + (family.guests?.length || 0),
+    0
+  );
+  
   const bestVenue = filteredVenues.find((v) => v.id === bestVenueId);
 
   const stats = [
@@ -33,10 +49,10 @@ export function DashboardSummary() {
       description: "entre os locais",
     },
     {
-      label: "Capacidade Total",
-      value: `${totalCapacity.toLocaleString("pt-BR")}`,
+      label: "Total de Convidados",
+      value: `${totalGuests.toLocaleString("pt-BR")}`,
       icon: Users,
-      description: "convidados",
+      description: "pessoas convidadas",
     },
     {
       label: "Melhor Escolha",

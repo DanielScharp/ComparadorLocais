@@ -75,8 +75,8 @@ export function VenueAttachmentsDialog({
     setDeleteTarget(null);
   };
 
-  const getFileIcon = (fileType: string) => {
-    if (fileType.startsWith("image/")) {
+  const getFileIcon = (type: string) => {
+    if (type.startsWith("image/")) {
       return <ImageIcon className="h-5 w-5 text-blue-500" />;
     }
     return <FileText className="h-5 w-5 text-red-500" />;
@@ -90,7 +90,7 @@ export function VenueAttachmentsDialog({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
-  const isImage = (fileType: string) => fileType.startsWith("image/");
+  const isImage = (type: string) => type.startsWith("image/");
 
   return (
     <>
@@ -157,17 +157,17 @@ export function VenueAttachmentsDialog({
                   >
                     {/* Preview or icon */}
                     <div className="flex-shrink-0">
-                      {isImage(attachment.file_type) ? (
+                      {isImage(attachment.type) ? (
                         <div className="h-12 w-12 overflow-hidden rounded-md border border-border bg-secondary">
                           <img
-                            src={attachment.file_url}
-                            alt={attachment.file_name}
+                            src={attachment.url}
+                            alt={attachment.name}
                             className="h-full w-full object-cover"
                           />
                         </div>
                       ) : (
                         <div className="flex h-12 w-12 items-center justify-center rounded-md border border-border bg-secondary">
-                          {getFileIcon(attachment.file_type)}
+                          {getFileIcon(attachment.type)}
                         </div>
                       )}
                     </div>
@@ -175,10 +175,10 @@ export function VenueAttachmentsDialog({
                     {/* File info */}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-foreground">
-                        {attachment.file_name}
+                        {attachment.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {formatFileSize(attachment.file_size)} • {" "}
+                        {formatFileSize(attachment.size)} • {" "}
                         {new Date(attachment.created_at).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
@@ -192,7 +192,7 @@ export function VenueAttachmentsDialog({
                         className="h-8 w-8 p-0"
                       >
                         <a
-                          href={attachment.file_url}
+                          href={attachment.url}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label="Abrir em nova aba"
@@ -207,8 +207,8 @@ export function VenueAttachmentsDialog({
                         className="h-8 w-8 p-0"
                       >
                         <a
-                          href={attachment.file_url}
-                          download={attachment.file_name}
+                          href={attachment.url}
+                          download={attachment.name}
                           aria-label="Baixar arquivo"
                         >
                           <Download className="h-4 w-4" />
@@ -238,7 +238,7 @@ export function VenueAttachmentsDialog({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">Excluir Anexo</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir <strong>{deleteTarget?.file_name}</strong>? 
+              Tem certeza que deseja excluir <strong>{deleteTarget?.name}</strong>? 
               Essa acao nao pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

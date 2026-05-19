@@ -30,6 +30,9 @@ export function FiltersBar() {
   } = useVenues();
 
   const hiddenCount = venues.filter((v) => v.hidden).length;
+  
+  // Ensure benefits is always an array
+  const safeBenefits = Array.isArray(benefits) ? benefits : [];
 
   const maxPrice = venues.length > 0 ? Math.max(...venues.map((v) => v.price)) : 100000;
   const sliderMax = Math.ceil(maxPrice / 1000) * 1000 + 10000;
@@ -144,13 +147,13 @@ export function FiltersBar() {
         <Label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Beneficios Obrigatorios
         </Label>
-        {benefits.length === 0 ? (
+        {safeBenefits.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Nenhum beneficio cadastrado.
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {benefits.map((b) => {
+            {safeBenefits.map((b) => {
               const active = benefitFilters.includes(b.id);
               return (
                 <button
