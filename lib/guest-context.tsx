@@ -47,6 +47,15 @@ interface GuestContextType {
   }) => Promise<void>;
   deleteFamily: (id: string) => Promise<void>;
   
+  // Import
+  importFamilies: (families: Array<{
+    name: string;
+    side: "noivo" | "noiva";
+    max_guests?: number;
+    notes?: string;
+    guests: Array<{ name: string; is_main_guest?: boolean; notes?: string }>;
+  }>) => Promise<{ imported: number; errors: string[] }>;
+
   // Guest actions
   addGuest: (familyId: string, guest: {
     name: string;
@@ -155,6 +164,30 @@ export function GuestProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Import families
+  const importFamilies = useCallback(async (families: Array<{
+    name: string;
+    side: "noivo" | "noiva";
+    max_guests?: number;
+    notes?: string;
+    guests: Array<{ name: string; is_main_guest?: boolean; notes?: string }>;
+  }>) => {
+    try {
+      const res = await fetch("/api/families/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(families),
+      });
+      const result = await res.json();
+      if (result.imported > 0) {
+        globalMutate("/api/families");
+      }
+      return { imported: result.imported ?? 0, errors: result.errors ?? [] };
+    } catch {
+      return { imported: 0, errors: ["Erro de conexão ao importar famílias."] };
+    }
+  }, []);
+
   // Guest actions
   const addGuest = useCallback(async (familyId: string, guest: {
     name: string;
@@ -240,6 +273,7 @@ export function GuestProvider({ children }: { children: React.ReactNode }) {
         addFamily,
         updateFamily,
         deleteFamily,
+        importFamilies,
         addGuest,
         updateGuest,
         deleteGuest,

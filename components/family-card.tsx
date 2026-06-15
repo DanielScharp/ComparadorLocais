@@ -34,6 +34,7 @@ import {
   X,
   Clock,
   Link2,
+  Gift,
 } from "lucide-react";
 import { FamilyFormDialog } from "./family-form-dialog";
 import { GuestFormDialog } from "./guest-form-dialog";
@@ -139,6 +140,12 @@ export function FamilyCard({ family }: FamilyCardProps) {
                 <DropdownMenuItem onClick={handleCopyLink}>
                   <Link2 className="mr-2 h-4 w-4" />
                   Copiar link do convite
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <a href={`/presentes/${family.id}`} target="_blank" rel="noreferrer">
+                    <Gift className="mr-2 h-4 w-4" />
+                    Ver lista de presentes
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -5,11 +5,12 @@ import { useGuests } from "@/lib/guest-context";
 import { GuestStats } from "@/components/guest-stats";
 import { FamilyCard } from "@/components/family-card";
 import { FamilyFormDialog } from "@/components/family-form-dialog";
+import { ImportGuestsJsonDialog } from "@/components/import-guests-json-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Spinner } from "@/components/ui/spinner";
-import { Plus, Search, Users } from "lucide-react";
+import { Plus, Search, Users, FileJson } from "lucide-react";
 import type { GuestSide } from "@/lib/types";
 
 export function GuestList() {
@@ -22,6 +23,7 @@ export function GuestList() {
     setSearchQuery,
   } = useGuests();
   const [addFamilyOpen, setAddFamilyOpen] = useState(false);
+  const [importJsonOpen, setImportJsonOpen] = useState(false);
 
   const filteredFamilies = useMemo(() => {
     let result = families;
@@ -74,13 +76,22 @@ export function GuestList() {
             {filteredFamilies.length !== families.length && " (filtradas)"}
           </p>
         </div>
-        <Button
-          onClick={() => setAddFamilyOpen(true)}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="mr-1.5 h-4 w-4" />
-          Nova Família
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setImportJsonOpen(true)}
+            variant="outline"
+          >
+            <FileJson className="mr-1.5 h-4 w-4" />
+            Importar JSON
+          </Button>
+          <Button
+            onClick={() => setAddFamilyOpen(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="mr-1.5 h-4 w-4" />
+            Nova Família
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -142,6 +153,7 @@ export function GuestList() {
       )}
 
       <FamilyFormDialog open={addFamilyOpen} onOpenChange={setAddFamilyOpen} />
+      <ImportGuestsJsonDialog open={importJsonOpen} onOpenChange={setImportJsonOpen} />
     </div>
   );
 }

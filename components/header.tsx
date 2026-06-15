@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, MapPin, Users } from "lucide-react";
+import { Heart, MapPin, Users, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -11,6 +11,7 @@ export function Header() {
   const navItems = [
     { href: "/", label: "Locais", icon: MapPin },
     { href: "/convidados", label: "Convidados", icon: Users },
+    { href: "/admin/presentes", label: "Presentes", icon: Gift },
   ];
 
   return (
